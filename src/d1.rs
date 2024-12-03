@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 
@@ -14,8 +15,10 @@ pub(crate) fn run() {
             .split_whitespace()
             .map(|s| s.parse().expect("Failed to parse number"))
             .collect();
-        left.push(numbers[0]);
-        right.push(numbers[1]);
+        if numbers.len() >= 2 {
+            left.push(numbers[0]);
+            right.push(numbers[1]);
+        }
     }
 
     println!("Day 1:");
@@ -23,33 +26,27 @@ pub(crate) fn run() {
     left.sort();
     right.sort();
 
-    find_difference(&left, &right);
-    calculate_similarity_score(&left, &right);
-}
-
-fn find_difference(left: &Vec<i32>, right: &Vec<i32>) {
-    let mut difference: u32 = 0;
-
-    for i in 0..left.len() {
-        difference += (left[i] - right[i]).abs() as u32;
-    }
-
+    let difference = find_difference(&left, &right);
     println!("{}", difference);
+
+    let similarity_score = calculate_similarity_score(&left, &right);
+    println!("{}", similarity_score);
 }
 
-fn calculate_similarity_score(left: &Vec<i32>, right: &Vec<i32>) {
-    let mut score: u32 = 0;
+fn find_difference(left: &[i32], right: &[i32]) -> u32 {
+    left.iter()
+        .zip(right.iter())
+        .map(|(l, r)| (l - r).abs() as u32)
+        .sum()
+}
 
-    for i in 0..left.len() {
-        let mut count: u32 = 0;
-        for j in 0..right.len() {
-            if left[i] == right[j] {
-                count += 1;
-            }
-        }
-
-        score += left[i] as u32 * count;
+fn calculate_similarity_score(left: &[i32], right: &[i32]) -> u32 {
+    let mut right_counts: HashMap<i32, u32> = HashMap::new();
+    for &num in right {
+        *right_counts.entry(num).or_insert(0) += 1;
     }
 
-    println!("{}", score);
+    left.iter()
+        .map(|&num| num as u32 * right_counts.get(&num).cloned().unwrap_or(0))
+        .sum()
 }
