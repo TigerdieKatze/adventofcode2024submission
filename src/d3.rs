@@ -7,12 +7,27 @@ pub(crate) fn run() {
     let reader = io::BufReader::new(file);
 
     let mut operations: Vec<String> = Vec::new();
-
+    let mut operations_enabled = true;
+    
     for line in reader.lines() {
         let line = line.expect("Failed to read line");
-        let re = Regex::new(r"mul\(\d+,\d+\)").unwrap();
-        for cap in re.find_iter(&line) {
-            operations.push(cap.as_str().to_string());
+        let re = Regex::new(r"mul\(\d+,\d+\)|do\(\)|don't\(\)").unwrap();
+
+        for cap in re.captures_iter(&line) {
+            let cap_str = cap.get(0).unwrap().as_str();
+            if cap_str == "do()" {
+                operations_enabled = true;
+                continue;
+            } else if cap_str == "don't()" {
+                operations_enabled = false;
+                continue;
+            }
+
+            if !operations_enabled {
+                continue;
+            }
+
+            operations.push(cap_str.to_string());
         }
     }
 
@@ -21,10 +36,12 @@ pub(crate) fn run() {
     let mut result: u32 = 0;
 
     for operation in operations {
-        let nums: Vec<u32> = operation
+        let nums = operation
             .split(|c| c == '(' || c == ')' || c == ',')
-            .filter_map(|s| s.parse().ok())
-            .collect();
+            .filter(|s| !s.is_empty())
+            .skip(1)
+            .map(|s| s.parse().expect("Failed to parse number"))
+            .collect::<Vec<u32>>();
         result += mul(nums[0], nums[1]);
     }
 
