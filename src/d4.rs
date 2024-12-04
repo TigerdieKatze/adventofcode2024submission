@@ -15,6 +15,11 @@ pub(crate) fn run() {
 
     println!("Day 4:");
 
+    count_xmas(&grid);
+    count_x_mas(&grid);
+}
+
+fn count_xmas(grid: &Vec<Vec<char>>) {
     let mut result: u32 = 0;
 
     let nrows = grid.len();
@@ -56,6 +61,30 @@ pub(crate) fn run() {
                 if found {
                     result += 1;
                 }
+            }
+        }
+    }
+
+    println!("{}", result);
+}
+
+fn count_x_mas(grid: &Vec<Vec<char>>) {
+    let rows = grid.len();
+    let cols = if rows > 0 { grid[0].len() } else { 0 };
+    let patterns = [['M', 'A', 'S'], ['S', 'A', 'M']];
+    let mut result = 0;
+
+    for i in 1..rows - 1 {
+        for j in 1..cols - 1 {
+            if grid[i][j] != 'A' {
+                continue;
+            }
+
+            let diag1 = [grid[i - 1][j - 1], grid[i][j], grid[i + 1][j + 1]];
+            let diag2 = [grid[i + 1][j - 1], grid[i][j], grid[i - 1][j + 1]];
+
+            if patterns.contains(&diag1) && patterns.contains(&diag2) {
+                result += 1;
             }
         }
     }
